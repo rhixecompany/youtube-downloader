@@ -1,5 +1,5 @@
-import yt_dlp
-from yt_dlp.utils import download_range_func  # noqa: F401
+import yt_dlp  # type: ignore[import-untyped]
+from yt_dlp.utils import download_range_func  # noqa: F401 # type: ignore
 
 save_path = "Django REST Framework"
 video_url = input("Enter your URL: ")
@@ -37,7 +37,7 @@ def main(video_url, save_path=save_path):
             },
         ],
     }
-    with yt_dlp.YoutubeDL(yt_opts) as ydl:
+    with yt_dlp.YoutubeDL(yt_opts) as ydl:  # type: ignore[arg-type]
         ydl.download([video_url])
 
 
