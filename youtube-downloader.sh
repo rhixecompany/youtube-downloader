@@ -4,6 +4,15 @@
 # Example non-interactive: ./youtube-downloader.sh "https://youtube.com/watch?v=xxx"
 
 set -euo pipefail
+cd "$(dirname "$0")"
+
+# Activate project virtualenv (myvenv)
+if [ ! -f ./myvenv/Scripts/activate ]; then
+  echo "ERROR: virtualenv not found. Run: python -m venv myvenv" >&2
+  exit 1
+fi
+# shellcheck disable=SC1091
+source ./myvenv/Scripts/activate
 
 # Default to interactive mode; --non-interactive skips prompt
 INTERACTIVE=1
@@ -20,7 +29,7 @@ done
 if [ ${#ARGS[@]} -gt 0 ]; then
   # Non-interactive: pass URL directly
   echo "Running in non-interactive mode with URL: ${ARGS[0]}"
-  myvenv/Scripts/python.exe main_noplaylist.py "${ARGS[0]}"
+  python main_noplaylist.py "${ARGS[0]}"
 else
   # Interactive mode: ask user for URL
   echo "Running in interactive mode (default)."
@@ -31,5 +40,5 @@ else
     echo "No URL entered. Exiting."
     exit 1
   fi
-  myvenv/Scripts/python.exe main_noplaylist.py "$url"
+  python main_noplaylist.py "$url"
 fi

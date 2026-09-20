@@ -11,6 +11,14 @@ param(
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Definition
 Set-Location $scriptDir
 
+# Activate project virtualenv (myvenv)
+$activatePs1 = Join-Path $scriptDir "myvenv\Scripts\Activate.ps1"
+if (-not (Test-Path $activatePs1)) {
+    Write-Host "ERROR: virtualenv not found. Run: python -m venv myvenv"
+    exit 1
+}
+. $activatePs1
+
 if ($NonInteractive -and $Url) {
     Write-Host "Running in non-interactive mode with URL: $Url"
     python main_noplaylist.py $Url

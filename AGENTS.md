@@ -62,13 +62,14 @@ CI (`.github/workflows/ci.yml`): Python 3.11 → `ruff check .` → `python test
 
 - Ruff config: `.ruff.toml` is the **effective** config; `[tool.ruff]` in `pyproject.toml` is shadowed (verified empirically: ARG/RUF rules fire, E501 ignored). Edit `.ruff.toml`, not pyproject.
 - `test.py` calls `input()` at module level; in non-interactive shells (CI included) it raises `EOFError` — run it interactively.
-- `.bat` wrapper passes the URL unquoted — URLs containing `&` (e.g. `?v=…&t=1s`) break; quote the URL argument.
+- `.bat` non-interactive: cmd splits URL args at `&` (even quoted, when reached via `call`) — a URL's `&`-params (e.g. `&t=1s`) are dropped; the base `?v=` URL still downloads. Use the interactive prompt for full-param URLs.
+- Do not put unquoted parens in `echo` lines inside `.bat` `if ( ... )` blocks — cmd's block parser miscounts depth (`. was unexpected`) — verified on this repo's `(default)` echo (fixed 2026-09-20).
 - `yt_dlp` is untyped: mypy needs `ignore_missing_imports` (already set in `[tool.mypy]`) and code carries `# type: ignore[import-untyped]`.
 
 ## Honest gaps
 
 - Wrappers do not implement `--dry-run` yet (SandBox multi-wrapper convention).
-- `.bat`/`.sh` resolve python via `myvenv/Scripts/python.exe`; `.ps1` uses `python` from PATH.
+- All three wrappers resolve python via `myvenv` activation (`.bat`/`.sh` require `myvenv/` present; `.ps1` dot-sources `myvenv\Scripts\Activate.ps1`).
 - `tests/` may be absent; `test.py` is a live smoke script, not a unit suite.
 - `requirements/base.txt` alone does **not** install yt-dlp; use `requirements/local.txt` or `yt-dlp[curl-cffi]`.
 

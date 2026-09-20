@@ -17,8 +17,8 @@ def main(input_url: str | None = None) -> None:
     """
     Main entry point for single video download.
     Interactive by default (asks for URL); non-interactive when input_url provided or --non-interactive flag used.
-    Example interactive: python main_noplaylist.py
-    Example non-interactive: python main_noplaylist.py "https://youtube.com/watch?v=xxx"
+    Example interactive: ./myvenv/Scripts/python main_noplaylist.py
+    Example non-interactive: ./myvenv/Scripts/python main_noplaylist.py "https://youtube.com/watch?v=xxx"
     """
     # Check for non-interactive flag
     is_interactive = "--non-interactive" not in sys.argv
