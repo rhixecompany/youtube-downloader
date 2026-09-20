@@ -4,7 +4,7 @@
 
 A Python CLI utility for downloading YouTube videos and playlists with yt-dlp. Supports single videos, playlists, and loops over URL lists. Videos are saved as MKV with embedded subtitles, metadata, and thumbnails.
 
-**Repository:** `rhixecompany/sandbox` (workspace monorepo), branch `clean-development`, path `projects/youtube-downloader`
+**Repository:** <https://github.com/rhixecompany/youtube-downloader> (standalone repo; local workspace path `projects/youtube-downloader`), branch `clean-development`
 **Stack:** Python ≥3.11 | yt-dlp (curl-cffi) | FFmpeg | ruff + pyright
 **Status:** Active
 
