@@ -1,5 +1,4 @@
 import sys
-
 import yt_dlp  # type: ignore[import-untyped]
 from yt_dlp.utils import download_range_func  # noqa: F401 # type: ignore
 

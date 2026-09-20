@@ -11,6 +11,7 @@ and this project uses conventional commits (`feat`, `fix`, `docs`, `refactor`, `
 - Windows `.bat` wrapper: fixed a command line parse error (`was unexpected at this time`) caused by unquoted parentheses in an echo line inside a parenthesized block
 - PowerShell `.ps1` wrapper: used the system python instead of the project virtual environment (now activates `myvenv/Scripts/Activate.ps1`)
 - `test.py` smoke test: failed in CI with `EOFError` because it prompted for a URL on a closed stdin; it now runs a non-interactive self check when stdin is not a terminal (interactive prompt is kept for humans)
+- (merged from remote development 4070a7d — rebuild + docs completion)
 
 ### Changed
 - Wrapper scripts (`.bat`, `.ps1`, `.sh`) now activate `./myvenv` and run python from it; they guard for a missing virtual environment and change to the script directory first
