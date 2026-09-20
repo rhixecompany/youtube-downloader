@@ -1,0 +1,3 @@
+include README.md LICENSE docs/design.md docs/scope/scope.md docs/specs/*.md
+recursive-include src *.py *.typed
+include youtube-downloader.sh youtube-downloader.ps1 youtube-downloader.bat
