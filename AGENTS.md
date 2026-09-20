@@ -11,13 +11,13 @@ This file holds **only** youtube-downloader-specific overrides, commands, and co
 
 ## Project-specific commands
 
-Run from this project root (`projects/youtube-downloader`).
+Run from this project root (`projects/youtube-downloader`). The in-tree venv is `myvenv/` (uncommitted); `.bat`/`.sh` wrappers hardcode `myvenv/Scripts/python.exe`.
 
 ```bash
 # Setup
-python -m venv venv
-# Windows: venv\Scripts\activate
-# Linux/macOS: source venv/bin/activate
+python -m venv myvenv
+# Windows: myvenv\Scripts\activate
+# Linux/macOS: source myvenv/bin/activate
 pip install -r requirements/local.txt
 # Dev extras (ruff, mypy, pytest, …): pip install -e ".[dev]"
 
@@ -25,6 +25,7 @@ pip install -r requirements/local.txt
 ruff check .          # bun run lint
 pyright .             # bun run typecheck
 # Optional: mypy *.py
+pre-commit run --all-files
 
 # Smoke (CI path — may hit the network / download)
 python test.py
@@ -41,7 +42,7 @@ Entrypoints:
 | `main_playlist.py` | One playlist |
 | `main_loop_noplaylist.py` | Repeated single-video URLs |
 | `main_loop_playlist.py` | Repeated playlist URLs |
-| `youtube-downloader.{bat,ps1,sh}` | Wrappers → `main_noplaylist.py` |
+| `youtube-downloader.{bat,ps1,sh}` | Wrappers → `main_noplaylist.py`; also accept `--non-interactive <url>` |
 
 Console script (hatchling): `youtube-downloader` → `main_noplaylist:main`.
 
@@ -57,9 +58,17 @@ CI (`.github/workflows/ci.yml`): Python 3.11 → `ruff check .` → `python test
 - Do not invent verification results; do not write `.env` or commit downloads.
 - Multi-file changes (≥5 files): see [`../../SOUL.md`](../../SOUL.md).
 
+## Pitfalls
+
+- Ruff config: `.ruff.toml` is the **effective** config; `[tool.ruff]` in `pyproject.toml` is shadowed (verified empirically: ARG/RUF rules fire, E501 ignored). Edit `.ruff.toml`, not pyproject.
+- `test.py` calls `input()` at module level; in non-interactive shells (CI included) it raises `EOFError` — run it interactively.
+- `.bat` wrapper passes the URL unquoted — URLs containing `&` (e.g. `?v=…&t=1s`) break; quote the URL argument.
+- `yt_dlp` is untyped: mypy needs `ignore_missing_imports` (already set in `[tool.mypy]`) and code carries `# type: ignore[import-untyped]`.
+
 ## Honest gaps
 
 - Wrappers do not implement `--dry-run` yet (SandBox multi-wrapper convention).
+- `.bat`/`.sh` resolve python via `myvenv/Scripts/python.exe`; `.ps1` uses `python` from PATH.
 - `tests/` may be absent; `test.py` is a live smoke script, not a unit suite.
 - `requirements/base.txt` alone does **not** install yt-dlp; use `requirements/local.txt` or `yt-dlp[curl-cffi]`.
 
