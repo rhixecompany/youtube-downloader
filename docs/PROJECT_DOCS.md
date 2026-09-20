@@ -349,6 +349,10 @@ Design tokens cover CLI output formatting: log colors (`info` green, `error` red
 | `MANIFEST.in` | PASS (3 include lines, 188 B) |
 | `src/py.typed` | PASS (PEP 561 marker, 0 B) |
 
+### Subgoal Reference
+- Subgoal artifact: `$HERMES_HOME/plans/youtube-downloader-subgoal-2026-09-20.md` (963 B) — references parent scope, protocol, verification gates, preserved blocker, and artifact inventory.
+- Subgoal status: COMPLETE (docs reference + artifact verified).
+
 ### Blockers (preserved honestly — not hidden/suppressed)
 - `mypy`: `Library stubs not installed for "yt_dlp"` — `# type: ignore` applied to import and constructor lines (`download_async.py`, `test.py`); `types-yt-dlp` unavailable from pip (verified by search); documented in `docs/design.md` and source comments
 - `pylint`: module `pylint` not installed in `myvenv`; `ruff` covers linting
