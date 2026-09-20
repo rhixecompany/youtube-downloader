@@ -64,9 +64,10 @@ youtube-downloader/
 ```bash
 # Prerequisites: Python ≥3.11, FFmpeg on PATH
 
-python -m venv venv
-# Windows: venv\Scripts\activate
-# Linux/macOS: source venv/bin/activate
+python -m venv myvenv
+# Windows: myvenv\Scripts\activate
+# Linux/macOS: source myvenv/bin/activate
+# Wrappers (.bat/.ps1/.sh) expect the in-tree "myvenv" virtual environment.
 
 pip install -r requirements/local.txt
 # Or runtime only: pip install "yt-dlp[curl-cffi]"

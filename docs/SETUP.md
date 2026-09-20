@@ -2,56 +2,53 @@
 
 ## Prerequisites
 
-- Python 3.8+
-- pip
-- Git
+- Python 3.11 or newer: `python --version`
+- FFmpeg on PATH: `ffmpeg -version`
+- Git: `git --version`
 
-## Installation
+## One-time setup
 
-1. Clone the repository:
-
-```bash
-git clone <repository-url>
-cd youtube-downloader
-```
-
-1. Create virtual environment (recommended):
+Run from this project root (`projects/youtube-downloader`).
 
 ```bash
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-venv\Scripts\activate      # Windows
-```
+python -m venv myvenv
+# Windows cmd:    myvenv\Scripts\activate
+# PowerShell:    myvenv\Scripts\Activate.ps1
+# Git bash / Linux / macOS: source myvenv/bin/activate
 
-1. Install dependencies:
-
-```bash
 pip install -r requirements/local.txt
+# Dev extras (ruff, pyright, pytest, build tooling): pip install -e ".[dev]"
 ```
+
+The wrapper scripts (`.bat`, `.ps1`, `.sh`) expect the in-tree `myvenv` folder.
+If it is missing they print a guard message instead of running.
 
 ## Usage
 
-Each script is run independently:
+| Mode | Command |
+| --- | --- |
+| Interactive (prompts) | `./youtube-downloader.sh` · `youtube-downloader.bat` · `.\youtube-downloader.ps1` |
+| Non-interactive with URL | `./youtube-downloader.sh --non-interactive "https://youtube.com/watch?v=xxx"` (same flag on `.bat` / `.ps1`) |
+| Direct, single video | `python main_noplaylist.py "URL"` (URL omitted = interactive) |
+| Direct, playlist | `python main_playlist.py "URL"` |
+| Direct, loop from file | `python main_loop_noplaylist.py urls.txt` · `python main_loop_playlist.py urls.txt` |
 
-```bash
-python main_noplaylist.py      # Single video
-python main_playlist.py        # Playlist
-python main_loop_noplaylist.py # Loop mode
-python main_loop_playlist.py   # Playlist loop
-```
+## Checks
 
-## Common Commands
+| Check | Command |
+| --- | --- |
+| Lint | `ruff check .` (config: `.ruff.toml`) or `bun run lint` |
+| Typecheck | `pyright .` (config: `pyrightconfig.json`) or `bun run typecheck` |
+| Smoke test | `python test.py` (interactive, may hit the network) |
 
-| Command            | Description    |
-| ------------------ | -------------- |
-| `python test.py`   | Run test suite |
-| `python -m pytest` | Run pytest     |
-| `ruff check .`     | Run linter     |
+There is no `tests/` directory; `python -m pytest` finds nothing.
 
 ## Troubleshooting
 
-If you encounter issues:
-
-1. Verify Python version (3.8+)
-2. Update yt-dlp: `pip install --upgrade yt-dlp`
-3. Check your internet connection
+| Symptom | Fix |
+| --- | --- |
+| `ModuleNotFoundError: No module named 'yt_dlp'` | `pip install -U "yt-dlp[curl-cffi]"` (or reinstall `requirements/local.txt`) |
+| Wrapper prints a virtual environment guard | Create `myvenv` (see setup above) |
+| `cmd` splits the URL at `&` | Quote the URL: `youtube-downloader.bat --non-interactive "https://...?v=x&t=1s"` |
+| Old `.bat` says `was unexpected at this time.` | Use the current wrapper (fixed parse error) |
+| `ffmpeg not found` | Install FFmpeg and add it to PATH |

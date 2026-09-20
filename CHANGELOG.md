@@ -5,6 +5,29 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project uses conventional commits (`feat`, `fix`, `docs`, `refactor`, `test`, `chore`).
 
+## [0.2.1] — 2026-09-20
+
+### Fixed
+- Windows `.bat` wrapper: fixed a command line parse error (`was unexpected at this time`) caused by unquoted parentheses in an echo line inside a parenthesized block
+- PowerShell `.ps1` wrapper: used the system python instead of the project virtual environment (now activates `myvenv/Scripts/Activate.ps1`)
+
+### Changed
+- Wrapper scripts (`.bat`, `.ps1`, `.sh`) now activate `./myvenv` and run python from it; they guard for a missing virtual environment and change to the script directory first
+- Non-interactive URL arguments through the `.bat` wrapper are quoted
+- Setup docs now point to the `myvenv` virtual environment and `requirements/local.txt` (README.md, docs/SETUP.md)
+
+### Documentation
+- AGENTS.md: documented the `myvenv` venv, wrapper activation, and two verified pitfalls (cmd splits URL args at `&`; unquoted parentheses in batch blocks break parsing)
+- docs/PROJECT_DOCS.md: updated to current facts (Python 3.11+, monorepo location, `myvenv`), added a documentation map covering all 23 markdown files at the root and in docs/, and extended the verification gates with today's evidence
+
+### Testing
+- `ruff check .`: PASS | `pyright .`: 0 errors, 0 warnings, 0 informations | `bash -n`: PASS | PowerShell parse: PASS
+- Ad-hoc dispatch harness: 9 of 9 PASS (all three wrappers reach the venv python and yt-dlp)
+- Live downloads through `.bat`, `.sh`, `.ps1` (MKV + SRT + thumbnail, correct folder)
+
+### Miscellaneous
+- Committed as `72eeca4` + `83e9015` (auto commit session `20260920_144842_69dac6`)
+
 ## [0.2.0] — 2026-09-20
 
 ### Documentation
