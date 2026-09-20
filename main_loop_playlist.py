@@ -1,46 +1,55 @@
+"""Loop mode playlist — rewritten with src/ helpers.
+As a patient teacher: loops through URLs (hardcoded list or args), uses same playlist naming.
+"""
 import logging
+import sys
 
-from yt_dlp import YoutubeDL
+from src.config.yt_opts_defaults import DEFAULT_YT_OPTS
+from src.helpers.cli_input_async import ask_url_list_sync
+from src.helpers.download_async import download_url_sync
 
 logger = logging.getLogger(__name__)
 
-
-def main(input_url):
-    yt_opts = {
-        "verbose": True,
-        "format": "136+ba,298+ba,232+ba,bv+ba",  # Video format 136 or 298 with audio format 140
-        "merge_output_format": "mkv",  # Merge into an MKV file
-        "writeautomaticsub": True,
-        "subtitlesformat": "srt",
-        "noplaylist": False,  # Set to False to download the entire playlist
-        "skip_download": False,
-        "outtmpl": "downloads/%(uploader)s/%(playlist_title)s/%(playlist_index)s-%(title)s.%(ext)s",  # %(uploader)s-97ac0bc8/%(upload_date)s__%(id)s.%(ext)s
-        "subtitleslangs": ["en"],
-        "writesubtitles": True,
-        "writethumbnail": True,
-        "postprocessors": [
-            {
-                "key": "FFmpegVideoConvertor",
-                "preferedformat": "mkv",
-            },
-        ],
-    }
-    msg = f"Starting {input_url}"
-    logger.info(msg)
-    with YoutubeDL(yt_opts) as ydl:
-        ydl.download([input_url])
-    msg1 = f"Done Downloading {input_url}"
-    logger.info(msg1)
-
+def main(input_url: str | None = None) -> None:
+    is_interactive = "--non-interactive" not in sys.argv
+    url = input_url
+    if url is None:
+        if is_interactive:
+            urls_text = ask_url_list_sync("Enter playlist URLs (comma-separated): ")
+            urls = [urls_text] if isinstance(urls_text, str) else urls_text
+        else:
+            args = [a for a in sys.argv[1:] if not a.startswith("--")]
+            urls = args if args else []
+        for single_url in urls if isinstance(urls, list) else [str(urls)]:
+            if not single_url:
+                continue
+            msg = f"Starting loop playlist {single_url}"
+            logger.info(msg)
+            print(msg)
+            opts = DEFAULT_YT_OPTS.copy()
+            opts["noplaylist"] = False
+            opts["outtmpl"] = "downloads/%(playlist_title)s/%(playlist_index)s-%(title)s.%(ext)s"
+            result = download_url_sync(str(single_url), opts)
+            print(f"Loop playlist complete for {single_url}: {result.video_path}")
+    else:
+        msg = f"Starting loop playlist {url}"
+        logger.info(msg)
+        print(msg)
+        opts = DEFAULT_YT_OPTS.copy()
+        opts["noplaylist"] = False
+        opts["outtmpl"] = "downloads/%(playlist_title)s/%(playlist_index)s-%(title)s.%(ext)s"
+        result = download_url_sync(url, opts)
+        print(f"Loop playlist complete: {result.video_path}")
 
 if __name__ == "__main__":
-    urls = [
-        "https://youtu.be/FTH6Dn3AyIQ?si=7w_dVuT9JdZKgG0t",
-        "https://youtu.be/PuOVqP_cjkE?si=7ljitzZHygeg3A95",
-        "https://youtu.be/xZ1ba-RLrjo?si=6whLrlsvtYv9HPL2",
-    ]
-    for link in urls:
-        url = link
-        main(url)
-    logger.info(f"Done Downloading {urls}")
-    # yt-dlp -Uv -N 5 --progress -f bestvideo+bestaudio/best --download-archive archives/archive-97ac0bc8.txt --write-subs --convert-subs srt --merge-output-format=mkv -i --add-metadata --write-annotations --write-info-json --write-thumbnail --write-description -o %(uploader)s-97ac0bc8/%(upload_date)s__%(id)s.%(ext)s --yes-playlist https://www.youtube.com/c/NBNNNewsLaz/videos
+    logging.basicConfig(level=logging.INFO)
+    args = [a for a in sys.argv[1:] if not a.startswith("--")]
+    interactive_flag = "--interactive" in sys.argv
+    non_interactive_flag = "--non-interactive" in sys.argv
+    if args:
+        for arg in args:
+            main(input_url=arg)
+    elif interactive_flag or not non_interactive_flag:
+        main()
+    else:
+        main()

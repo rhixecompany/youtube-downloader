@@ -1,43 +1,88 @@
-# youtube-downloader
+# youtube-downloader — AGENTS.md
 
-## Architecture
+**Canonical workspace context:** [`../../AGENTS.md`](../../AGENTS.md)  
+This file holds **only** youtube-downloader-specific overrides, commands, and conventions.
 
-- **Type:** Python CLI downloader for YouTube
-- **Pattern:** Single-file scripts with yt-dlp + curl_cffi; supports single video, playlist, and loop modes
-- **Reference:** [Workflow Analysis](docs/Project_Architecture/Workflow_Analysis.md), [Exemplars](docs/Project_Architecture/exemplars.md)
+## Project identity
 
-Python 3.x CLI tool using yt-dlp + curl_cffi for YouTube content downloading. Supports single video, playlist, and loop/ batch modes.
+- Python **≥3.11** CLI utility around `yt-dlp`, `curl_cffi`, and external **FFmpeg**.
+- Supported surface: command-line download only (no web app, database, or service layer).
+- Keep `.env`, cookies, credentials, and `downloads/` out of commits. Treat URLs and media as untrusted.
 
-## Stack
+## Project-specific commands
 
-- **Language:** Python 3.x
-- **Key Libraries:** `yt-dlp`, `curl_cffi`
-- **Quality:** `ruff` (lint), `mypy` (type check, optional)
-- **External Deps:** FFmpeg (for post-processing/conversions)
-
-## Commands
+Run from this project root (`projects/youtube-downloader`). The in-tree venv is `myvenv/` (uncommitted); `.bat`/`.sh` wrappers hardcode `myvenv/Scripts/python.exe`.
 
 ```bash
-pip install yt-dlp curl_cffi
-python main_noplaylist.py          # single video
-python main_playlist.py            # playlist
-python main_loop_playlist.py       # batch loop mode
-python test.py                     # run tests
-ruff check . && mypy *.py          # optional lint/type-check
+# Setup
+python -m venv myvenv
+# Windows: myvenv\Scripts\activate
+# Linux/macOS: source myvenv/bin/activate
+pip install -r requirements/local.txt
+# Dev extras (ruff, mypy, pytest, …): pip install -e ".[dev]"
+
+# Lint / typecheck (package.json wrappers)
+ruff check .          # bun run lint
+pyright .             # bun run typecheck
+# Optional: mypy *.py
+pre-commit run --all-files
+
+# Smoke (CI path — may hit the network / download)
+python test.py
+
+# Pytest (configured for tests/; directory may be empty)
+python -m pytest
 ```
 
-## Conventions
+Entrypoints:
 
-- Single CLI tool — no web deployment or framework
-- `.env` / URLs — never commit
-- Keep yt-dlp updated for site compatibility
-- FFmpeg required for format conversions
-- Add delays between requests to respect rate limits
-- `ruff` for linting; `mypy` type hints optional
+| Script | Purpose |
+| --- | --- |
+| `main_noplaylist.py` | Single video (interactive default or URL arg) |
+| `main_playlist.py` | One playlist |
+| `main_loop_noplaylist.py` | Repeated single-video URLs |
+| `main_loop_playlist.py` | Repeated playlist URLs |
+| `youtube-downloader.{bat,ps1,sh}` | Wrappers → `main_noplaylist.py`; also accept `--non-interactive <url>` |
 
-## Notes
+Console script (hatchling): `youtube-downloader` → `main_noplaylist:main`.
 
-- No web UI or API — pure CLI
-- curl_cffi for bypassing some bot protections
-- Loop mode for bulk/batch processing
-- Test via `python test.py`
+CI (`.github/workflows/ci.yml`): Python 3.11 → `ruff check .` → `python test.py`.
+
+## Project-specific conventions
+
+- Keep each download mode in its own `main_*.py`; put shared behavior under `src/` (`config/yt_opts_defaults.py`, `helpers/*_async.py`).
+- Copy `DEFAULT_YT_OPTS` before per-mode changes; playlist modes override `noplaylist` and output templates.
+- Sync naming/format tokens with [`docs/design.md`](docs/design.md) (MKV, SRT, uploader/title paths).
+- Python: 4-space indent, double quotes, snake_case, Ruff line-length 120 (`ruff check .`).
+- Prefer `pyright .` as the primary typecheck; mypy is optional.
+- Do not invent verification results; do not write `.env` or commit downloads.
+- Multi-file changes (≥5 files): see [`../../SOUL.md`](../../SOUL.md).
+
+## Pitfalls
+
+- Ruff config: `.ruff.toml` is the **effective** config; `[tool.ruff]` in `pyproject.toml` is shadowed (verified empirically: ARG/RUF rules fire, E501 ignored). Edit `.ruff.toml`, not pyproject.
+- `test.py` calls `input()` at module level; in non-interactive shells (CI included) it raises `EOFError` — run it interactively.
+- `.bat` non-interactive: cmd splits URL args at `&` (even quoted, when reached via `call`) — a URL's `&`-params (e.g. `&t=1s`) are dropped; the base `?v=` URL still downloads. Use the interactive prompt for full-param URLs.
+- Do not put unquoted parens in `echo` lines inside `.bat` `if ( ... )` blocks — cmd's block parser miscounts depth (`. was unexpected`) — verified on this repo's `(default)` echo (fixed 2026-09-20).
+- `yt_dlp` is untyped: mypy needs `ignore_missing_imports` (already set in `[tool.mypy]`) and code carries `# type: ignore[import-untyped]`.
+
+## Honest gaps
+
+- Wrappers do not implement `--dry-run` yet (SandBox multi-wrapper convention).
+- All three wrappers resolve python via `myvenv` activation (`.bat`/`.sh` require `myvenv/` present; `.ps1` dot-sources `myvenv\Scripts\Activate.ps1`).
+- `tests/` may be absent; `test.py` is a live smoke script, not a unit suite.
+- `requirements/base.txt` alone does **not** install yt-dlp; use `requirements/local.txt` or `yt-dlp[curl-cffi]`.
+
+## Adapters
+
+| File | Role |
+| --- | --- |
+| [`.cursorrules`](.cursorrules) | Cursor IDE adapter |
+| [`CLAUDE.md`](CLAUDE.md) | Claude thin pointer |
+| [`.hermes.md`](.hermes.md) | Hermes thin pointer → [`../../.hermes.md`](../../.hermes.md) |
+| [`.github/copilot-instructions.md`](.github/copilot-instructions.md) | Copilot project adapter |
+| [`README.md`](README.md) | User-facing overview |
+
+---
+
+*Shared safety, clarification, artifacts, and toolchain: [`../../AGENTS.md`](../../AGENTS.md).*

@@ -1,138 +1,140 @@
 # youtube-downloader — CLI Video Downloader
 
-> **Stack:** Python 3.x + yt-dlp | **Type:** CLI Utility Tool | **Status:** Active
+> **Stack:** Python ≥3.11 + yt-dlp | **Type:** CLI utility | **Status:** Active | **License:** MIT
 
-A Python CLI tool for downloading YouTube videos (single, playlist, and loop mode) using yt-dlp and curl_cffi. Designed for simplicity with no web deployment.
+Python CLI for downloading YouTube videos (single, playlist, and loop modes) via yt-dlp and curl_cffi. No web deployment.
 
 ---
 
-## Technology Stack
+## Technology stack
 
-| Category             | Technology         |
-| -------------------- | ------------------ |
-| **Runtime**          | Python ^3.x        |
-| **Language**         | Python             |
-| **Download Engine**  | yt-dlp (latest)    |
-| **HTTP Client**      | curl_cffi (latest) |
-| **Media Processing** | FFmpeg (external)  |
-| **Linting**          | ruff (optional)    |
-| **Type Checking**    | mypy (optional)    |
+| Category | Technology |
+| --- | --- |
+| Runtime | Python ≥3.11 |
+| Download engine | yt-dlp |
+| HTTP client | curl_cffi (via `yt-dlp[curl-cffi]`) |
+| Media processing | FFmpeg (external) |
+| Lint | ruff |
+| Type check | pyright (primary); mypy optional |
 
 ## Architecture
 
 ```
-User Command → Python Script
+User Command → main_*.py entrypoint
                     ↓
-          ┌─────────┴─────────┐
-          ↓         ↓         ↓
-    Single Video  Playlist   Loop Mode
-          ↓         ↓         ↓
-          └─────────┬─────────┘
+              src/ helpers + DEFAULT_YT_OPTS
                     ↓
-              yt-dlp API
+                 yt-dlp API
                     ↓
         ┌───────────┴───────────┐
         ↓                       ↓
-    HTTP Request           Rate Limiting
-    (curl_cffi)            (Polite Delays)
+    HTTP (curl_cffi)      FFmpeg merge/convert
         ↓                       ↓
-    Video/Audio Download   FFmpeg Conversion
-        ↓                       ↓
-    ┌───────────┬───────────────┘
-    ↓           ↓
-Output File  Console Progress
+    downloads/…          Console progress
 ```
 
-## Project Structure
+## Project structure
 
 ```
 youtube-downloader/
-├── main_noplaylist.py        # Single video download
-├── main_playlist.py          # Playlist download
-├── main_loop_playlist.py     # Batch loop mode
-├── test.py                   # Basic test script
+├── main_noplaylist.py          # Single video
+├── main_playlist.py            # Playlist
+├── main_loop_noplaylist.py     # Loop: single videos
+├── main_loop_playlist.py       # Loop: playlists
+├── test.py                     # CI/manual smoke (may download)
+├── youtube-downloader.bat      # Windows wrapper → main_noplaylist
+├── youtube-downloader.ps1
+├── youtube-downloader.sh
+├── src/
+│   ├── config/yt_opts_defaults.py
+│   └── helpers/                # download / CLI / file async+sync helpers
 ├── requirements/
-│   └── base.txt              # Base dependencies
-├── .env.example              # Environment template
-└── docs/Project_Architecture/
+│   ├── base.txt                # Shared/tooling pins (no yt-dlp alone)
+│   └── local.txt               # Local install incl. yt-dlp[curl-cffi]
+├── docs/
+│   ├── SETUP.md
+│   └── design.md               # CLI / output naming tokens
+├── pyproject.toml
+├── package.json                # bun wrappers: lint / typecheck
+└── AGENTS.md                   # Agent project context
 ```
 
-## Getting Started
+## Getting started
 
 ```bash
-# Prerequisites: Python 3.x, FFmpeg installed
+# Prerequisites: Python ≥3.11, FFmpeg on PATH
 
-# Install dependencies
-pip install yt-dlp curl_cffi
-# Or: pip install -r requirements/base.txt
+python -m venv myvenv
+# Windows: myvenv\Scripts\activate
+# Linux/macOS: source myvenv/bin/activate
+# Wrappers (.bat/.ps1/.sh) expect the in-tree "myvenv" virtual environment.
 
-# Download a single video
-python main_noplaylist.py
+pip install -r requirements/local.txt
+# Or runtime only: pip install "yt-dlp[curl-cffi]"
+# Dev tooling: pip install -e ".[dev]"
 
-# Download a playlist
-python main_playlist.py
+python main_noplaylist.py       # single video
+python main_playlist.py         # playlist
+python main_loop_noplaylist.py  # loop singles
+python main_loop_playlist.py    # loop playlists
 
-# Batch loop download
-python main_loop_playlist.py
+# Wrappers (single-video entry)
+./youtube-downloader.sh
+# youtube-downloader.bat / youtube-downloader.ps1 on Windows
 
-# Run basic test
-python test.py
-
-# Optional: lint and type check
-ruff check .
-mypy *.py
+python test.py                  # smoke (network)
+ruff check .                    # or: bun run lint
+pyright .                       # or: bun run typecheck
 ```
 
-## Key Features
+More detail: [`docs/SETUP.md`](docs/SETUP.md). Agent conventions: [`AGENTS.md`](AGENTS.md).
 
-- **Single Video Download** — Download individual YouTube videos
-- **Playlist Download** — Download entire YouTube playlists
-- **Loop Mode** — Batch loop mode for continuous playlist downloads
-- **yt-dlp Engine** — Active fork of youtube-dl with more features
-- **curl_cffi** — Advanced HTTP fingerprinting for reliability
-- **FFmpeg Integration** — Format conversion and audio extraction
-- **Rate Limiting** — Built-in polite delays
+## Key features
 
-## Scripts Overview
+- Single video, playlist, and loop modes
+- Shared yt-dlp defaults (format, MKV merge, subtitles, thumbnails)
+- curl_cffi fingerprinting via yt-dlp extra
+- FFmpeg post-processing
+- Cross-platform wrappers (`.bat` / `.ps1` / `.sh`)
 
-| Script                  | Purpose                                    |
-| ----------------------- | ------------------------------------------ |
-| `main_noplaylist.py`    | Download a single video                    |
-| `main_playlist.py`      | Download an entire playlist                |
-| `main_loop_playlist.py` | Batch loop mode for continuous downloading |
-| `test.py`               | Basic functionality test                   |
+## Scripts overview
 
-## Coding Standards
+| Script | Purpose |
+| --- | --- |
+| `main_noplaylist.py` | Download a single video |
+| `main_playlist.py` | Download a playlist |
+| `main_loop_noplaylist.py` | Batch loop of single-video URLs |
+| `main_loop_playlist.py` | Batch loop of playlist URLs |
+| `test.py` | Manual/CI smoke (not a unit suite) |
 
-- **PEP 8**: Python style guide
-- **snake_case**: Variable and function naming
-- **Type hints**: Optional type annotations (mypy compatible)
-- **Try/except**: Robust error handling for network/download failures
-- **Clear purpose**: Each script has a distinct, well-defined purpose
+## Coding standards
 
-## Usage Tips
+- PEP 8, snake_case, 4-space indent, double quotes
+- Prefer type annotations; primary check is pyright
+- Copy `DEFAULT_YT_OPTS` per mode; keep tokens in sync with `docs/design.md`
+- Explicit error handling for network/download failures
 
-- Keep yt-dlp updated for continued functionality: `pip install -U yt-dlp`
-- FFmpeg is required for audio extraction and format conversion
-- Add delays to respect YouTube rate limits
-- If downloads fail, update yt-dlp first
+## Usage tips
+
+- Keep yt-dlp updated: `pip install -U "yt-dlp[curl-cffi]"`
+- FFmpeg is required for merge/conversion
+- Prefer updating yt-dlp first when downloads fail
+- Respect YouTube Terms of Service; personal use only
 
 ## Security
 
-- No URLs committed to VCS
-- `.env` never committed
-- Validate URLs to prevent SSRF attacks
-- Respect YouTube Terms of Service
-- No mass or commercial use
-- Scan downloaded files for malware
+- Do not commit `.env`, cookies, credentials, or `downloads/`
+- Treat URLs and downloaded files as untrusted
+- No mass or commercial scraping use
 
 ## Dependencies
 
-| Library       | Purpose                                             |
-| ------------- | --------------------------------------------------- |
-| **yt-dlp**    | YouTube downloading (active fork of youtube-dl)     |
-| **curl_cffi** | Advanced HTTP fingerprinting for avoiding detection |
+| Library | Purpose |
+| --- | --- |
+| **yt-dlp** | Download engine |
+| **curl_cffi** | HTTP fingerprinting (yt-dlp extra) |
+| **FFmpeg** | External merge / conversion |
 
 ## License
 
-Not specified.
+MIT — see [`LICENSE`](LICENSE).
