@@ -1,5 +1,5 @@
 @echo off
-REM YouTube CLI wrapper — Windows batch (.bat)
+REM YouTube CLI wrapper - Windows batch (.bat)
 REM Interactive by default; non-interactive with --non-interactive
 REM Example interactive: youtube-downloader.bat
 REM Example non-interactive: youtube-downloader.bat --non-interactive "https://youtube.com/watch?v=xxx"
@@ -27,7 +27,7 @@ goto loop_args
 if %NON_INTERACTIVE%==1 (
     if defined PROVIDED_URL (
         echo Running non-interactive mode with URL: %PROVIDED_URL%
-        python main_noplaylist.py %PROVIDED_URL%
+        myvenv\Scripts\python.exe main_noplaylist.py %PROVIDED_URL%
     ) else (
         echo Non-interactive mode selected but no URL provided. Please pass URL after --non-interactive.
         exit /b 1
@@ -35,14 +35,14 @@ if %NON_INTERACTIVE%==1 (
 ) else (
     if defined PROVIDED_URL (
         echo URL provided: %PROVIDED_URL%
-        python main_noplaylist.py %PROVIDED_URL%
+        myvenv\Scripts\python.exe main_noplaylist.py %PROVIDED_URL%
     ) else (
         echo Running interactive mode (default). Enter a video URL:
-        set /p url=URL:
+        set /p url=URL: 
         if "!url!"=="" (
             echo No URL entered. Exiting.
             exit /b 1
         )
-        python main_noplaylist.py !url!
+        myvenv\Scripts\python.exe main_noplaylist.py !url!
     )
 )
