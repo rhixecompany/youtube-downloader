@@ -1,8 +1,11 @@
 # .cursorrules — youtube-downloader
 
-Cursor IDE rules. All workspace rules in `../../AGENTS.md`.
+**Canonical project context:** [`AGENTS.md`](AGENTS.md)  
+**Workspace rules:** [`../../AGENTS.md`](../../AGENTS.md)  
+**Hermes-only overrides:** [`.hermes.md`](.hermes.md) → [`../../.hermes.md`](../../.hermes.md)
 
-- Code style: 2-space TS, 4-space Python, single-quotes TS, double-quotes Python
-- No `any`, no backup files, no `.env` writes
-- All toolchain, routing, and conventions: see `../../AGENTS.md`
-- Multi-file protocol (≥5 files): see `../../SOUL.md` canonical block
+- Inspect local `AGENTS.md`, `pyproject.toml` / `package.json`, and existing code before editing.
+- Python CLI only: 4-space indent, double quotes, snake_case; Ruff 120; prefer `ruff check .` and `pyright .`.
+- No `any` (if TS appears), no backup files, no `.env` writes, no inventing APIs or verification results.
+- Surgical changes; preserve unrelated worktree modifications.
+- Multi-file protocol (≥5 files): [`../../SOUL.md`](../../SOUL.md) canonical block.
