@@ -20,7 +20,7 @@ done
 if [ ${#ARGS[@]} -gt 0 ]; then
   # Non-interactive: pass URL directly
   echo "Running in non-interactive mode with URL: ${ARGS[0]}"
-  python main_noplaylist.py "${ARGS[0]}"
+  myvenv/Scripts/python.exe main_noplaylist.py "${ARGS[0]}"
 else
   # Interactive mode: ask user for URL
   echo "Running in interactive mode (default)."
@@ -31,5 +31,5 @@ else
     echo "No URL entered. Exiting."
     exit 1
   fi
-  python main_noplaylist.py "$url"
+  myvenv/Scripts/python.exe main_noplaylist.py "$url"
 fi
